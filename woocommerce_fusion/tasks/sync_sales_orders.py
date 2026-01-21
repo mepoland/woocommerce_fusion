@@ -1,4 +1,5 @@
 import json
+import re
 from datetime import datetime
 from typing import Dict, Optional, Tuple, Union
 
@@ -560,6 +561,10 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 
 		# Use order ID for guest users, otherwise use email
 		wc_server = frappe.get_cached_doc("WooCommerce Server", wc_order.woocommerce_server)
+		matched_company_customer = None
+		if wc_server.match_customer_by_company_name and company_name:
+			matched_company_customer = self.find_company_customer_by_name(company_name)
+
 		if is_guest:
 			customer_identifier = f"Guest-{order_id}"
 		elif company_name and wc_server.enable_dual_accounts:
@@ -569,7 +574,7 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 
 		# Check if customer exists using the identifier
 
-		existing_customer = frappe.get_value(
+		existing_customer = matched_company_customer or frappe.get_value(
 			"Customer", {"woocommerce_identifier": customer_identifier}, "name"
 		)
 
@@ -583,8 +588,9 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 			# Edit Customer
 			customer = frappe.get_doc("Customer", existing_customer)
 
-		customer.customer_name = company_name if company_name else individual_name
-		customer.woocommerce_identifier = customer_identifier
+			if not matched_company_customer:
+				customer.customer_name = company_name if company_name else individual_name
+				customer.woocommerce_identifier = customer_identifier
 
 		# Check if vat_id exists in raw_billing_data and is a valid string
 		vat_id = raw_billing_data.get("vat_id")
@@ -613,6 +619,38 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 			frappe.log_error("WooCommerce Error", error_message)
 
 		return customer.name
+
+	@staticmethod
+	def find_company_customer_by_name(company_name: str) -> Optional[str]:
+		normalized_company_name = SynchroniseSalesOrder.normalize_company_name(company_name)
+		if not normalized_company_name:
+			return None
+
+		matching_customers = []
+		for customer in frappe.get_all(
+			"Customer",
+			filters={"customer_type": "Company"},
+			fields=["name", "customer_name"],
+		):
+			if (
+				SynchroniseSalesOrder.normalize_company_name(customer.customer_name)
+				== normalized_company_name
+			):
+				matching_customers.append(customer.name)
+
+		if len(matching_customers) != 1:
+			return None
+
+		return matching_customers[0]
+
+	@staticmethod
+	def normalize_company_name(company_name: str) -> str:
+		if not company_name:
+			return ""
+
+		normalized = "".join(char for char in company_name if char.isalnum() or char.isspace())
+		normalized = re.sub(r"\s+", " ", normalized).strip().lower()
+		return normalized
 
 	def create_missing_items(self, wc_order, items_list, woocommerce_site):
 		"""

@@ -521,6 +521,13 @@
   },
   {
    "default": "0",
+   "description": "Match WooCommerce company names to existing ERPNext Company customers when syncing Sales Orders",
+   "fieldname": "match_customer_by_company_name",
+   "fieldtype": "Check",
+   "label": "Match Customer by Company Name"
+  },
+  {
+   "default": "0",
    "depends_on": "eval: doc.enable_stock_level_synchronisation",
    "description": "Adjusts stock levels sent to WooCommerce by subtracting reserved stock, ensuring only available stock is synced",
    "fieldname": "subtract_reserved_stock",
