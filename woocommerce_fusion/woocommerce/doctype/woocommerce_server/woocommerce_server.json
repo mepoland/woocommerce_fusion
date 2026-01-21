@@ -49,6 +49,7 @@
   "payment_method_gl_account_mapping",
   "customers_sync_section",
   "enable_dual_accounts",
+  "match_customer_by_company_name",
   "section_addresses",
   "address_title_convention",
   "shipping_methods_sync_section",
