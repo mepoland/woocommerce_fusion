@@ -49,6 +49,7 @@
   "payment_method_gl_account_mapping",
   "customers_sync_section",
   "enable_dual_accounts",
+  "match_customer_by_company_name",
   "section_addresses",
   "address_title_convention",
   "shipping_methods_sync_section",
@@ -518,6 +519,13 @@
    "fieldname": "enable_dual_accounts",
    "fieldtype": "Check",
    "label": "Enable Dual Accounts for Same Email (Private/Company)"
+  },
+  {
+   "default": "0",
+   "description": "Match WooCommerce company names to existing ERPNext Company customers when syncing Sales Orders",
+   "fieldname": "match_customer_by_company_name",
+   "fieldtype": "Check",
+   "label": "Match Customer by Company Name"
   },
   {
    "default": "0",
