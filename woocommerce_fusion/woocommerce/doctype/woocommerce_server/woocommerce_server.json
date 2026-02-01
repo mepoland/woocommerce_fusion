@@ -44,6 +44,8 @@
   "f_n_f_tax_account",
   "section_payments_sync",
   "enable_payments_sync",
+  "column_break_payments_sync",
+  "submit_payment_entries",
   "ignore_date_paid",
   "payment_method_bank_account_mapping",
   "payment_method_gl_account_mapping",
@@ -264,6 +266,16 @@
    "fieldname": "enable_payments_sync",
    "fieldtype": "Check",
    "label": "Enable Payments Sync"
+  },
+  {
+   "fieldname": "column_break_payments_sync",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "submit_payment_entries",
+   "fieldtype": "Check",
+   "label": "Submit Payment Entry"
   },
   {
    "fieldname": "section_payments_sync",

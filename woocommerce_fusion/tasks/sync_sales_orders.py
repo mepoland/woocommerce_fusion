@@ -355,6 +355,8 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 				row.total_amount = total_amount
 				row.allocated_amount = total_amount
 				payment_entry.save()
+				if wc_server.submit_payment_entries:
+					payment_entry.submit()
 
 				# Link created Payment Entry to Sales Order
 				sales_order.woocommerce_payment_entry = payment_entry.name
