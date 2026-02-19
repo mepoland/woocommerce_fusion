@@ -626,7 +626,11 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 		billing_address, shipping_address = self.create_order_addresses(
 			raw_billing_data, raw_shipping_data, customer, is_new_customer
 		)
-		contact = create_contact(raw_billing_data, self.customer)
+		contact = None
+		if not is_new_customer:
+			contact = find_existing_contact(email, raw_billing_data.get("phone"))
+		if not contact:
+			contact = create_contact(raw_billing_data, self.customer)
 		if contact and is_new_customer:
 			self.customer.reload()
 			self.customer.customer_primary_contact = contact.name
