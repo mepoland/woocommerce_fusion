@@ -625,7 +625,7 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 		self.customer = customer
 
 		billing_address, shipping_address = self.create_order_addresses(
-			raw_billing_data, raw_shipping_data, customer, is_new_customer
+			raw_billing_data, _raw_shipping_data, customer, is_new_customer
 		)
 		contact = None
 		if not is_new_customer:
