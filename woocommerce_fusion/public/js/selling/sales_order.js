@@ -1,5 +1,11 @@
 frappe.ui.form.on('Sales Order', {
 	refresh: function(frm) {
+		// Default to hidden and only enable shipment tracking UI if AST is enabled on the linked server.
+		frm.doc.woocommerce_shipment_trackings = [];
+		frm.set_df_property('woocommerce_shipment_tracking_html', 'hidden', 1);
+		frm.set_df_property('woocommerce_shipment_tracking_html', 'options', " ");
+		frm.refresh_field('woocommerce_shipment_tracking_html');
+
 		// Add a custom button to navigate to WooCommerce and open this order
 		if (frm.doc.woocommerce_id){
 			frm.add_custom_button(__("Open in WooCommerce"), function () {
@@ -16,21 +22,39 @@ frappe.ui.form.on('Sales Order', {
 			}, __('Actions'));
 		}
 
-		// Add a custom button to allow adding or editing Shipment Trackings
-		if (frm.doc.woocommerce_id){
-			frm.add_custom_button(__("Edit WooCommerce Shipment Trackings"), function () {
-				frm.trigger("prompt_user_for_shipment_trackings");
-			}, __('Actions'));
+		if (!(frm.doc.woocommerce_id && frm.doc.woocommerce_server)) {
+			return;
 		}
 
-		if (frm.doc.woocommerce_id && frm.doc.woocommerce_server && ["Shipped", "Delivered"].includes(frm.doc.woocommerce_status)){
-			frm.trigger("load_shipment_trackings_table");
-		}
-		else {
-			// Clean up Shipment Tracking HTML
-			frm.doc.woocommerce_shipment_trackings = [];
-			frm.set_df_property('woocommerce_shipment_tracking_html', 'options', " ");
-		}
+		frappe.db
+			.get_value(
+				"WooCommerce Server",
+				frm.doc.woocommerce_server,
+				"wc_plugin_advanced_shipment_tracking"
+			)
+			.then((r) => {
+				const astEnabled = Boolean(
+					r &&
+					r.message &&
+					Number(r.message.wc_plugin_advanced_shipment_tracking)
+				);
+
+				if (!astEnabled) {
+					return;
+				}
+
+				frm.set_df_property('woocommerce_shipment_tracking_html', 'hidden', 0);
+				frm.refresh_field('woocommerce_shipment_tracking_html');
+
+				frm.add_custom_button(__("Edit WooCommerce Shipment Trackings"), function () {
+					frm.trigger("prompt_user_for_shipment_trackings");
+				}, __('Actions'));
+
+				if (["Shipped", "Delivered"].includes(frm.doc.woocommerce_status)){
+					frm.trigger("load_shipment_trackings_table");
+				}
+			});
+
 	},
 
 	sync_sales_order: function(frm) {
@@ -116,18 +140,18 @@ frappe.ui.form.on('Sales Order', {
 		// Add a table with Shipment Trackings
 		frm.set_df_property('woocommerce_shipment_tracking_html', 'options', '🚚 <i>Loading Shipments...</i><br><br><br><br>');
 		frm.refresh_field('woocommerce_shipment_tracking_html');
-		frappe.call({
-			method: "woocommerce_fusion.overrides.selling.sales_order.get_woocommerce_order_shipment_trackings",
-			args: {
-				doc: frm.doc
-			},
-			callback: function(r) {
-				if (r.message) {
-					frappe.show_alert({
-						indicator: "green",
-						message: __("Retrieved WooCommerce Shipment Trackings"),
-					});
-					frm.doc.woocommerce_shipment_trackings = r.message;
+			frappe.call({
+				method: "woocommerce_fusion.overrides.selling.sales_order.get_woocommerce_order_shipment_trackings",
+				args: {
+					doc: frm.doc
+				},
+				callback: function(r) {
+					if (Array.isArray(r.message) && r.message.length > 0) {
+						frappe.show_alert({
+							indicator: "green",
+							message: __("Retrieved WooCommerce Shipment Trackings"),
+						});
+						frm.doc.woocommerce_shipment_trackings = r.message;
 
 					let trackingsHTML = `<b>WooCommerce Shipments:</b><br><table class="table table-striped">`+
 					`<tr><th>Date Shipped</th><th>Provider</th><th>Tracking Number</th>`;
