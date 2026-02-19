@@ -40,7 +40,7 @@ Note that if sync for an **Item** is disabled (i.e. the "Enabled" checkbox on th
 | ------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | billing       | **Address** with type *Billing*               | See **Customer Synchronisation** below. Checks if the `billing.email` field matches an existing **Customer's** `woocommerce_identifier` field. If not, a new **Customer** is created. |
 |               | **Contact**                                   |                                                                                                                                                                                       |
-| shipping      | **Adress** with type *Shipping*               | See **Address  Synchronsation** below                                                                                                                                                 |
+| shipping      | **Address** with type *Shipping*               | See **Address  Synchronsation** below                                                                                                                                                 |
 | line_items    | **Item**                                      | Checks if a linked **Item** exists, else a new Item is created                                                                                                                        |
 | id            | **Sales Order** > *Customer's Purchase Order* |                                                                                                                                                                                       |
 |               | **Sales Order** > *Woocommerce ID*            |                                                                                                                                                                                       |
@@ -59,7 +59,7 @@ Here are a few examples:
 where `$` refers to the **WooCommerce Order Line** object
 
 
-![Sales Order Item Fields Mapping](../images/sales-order-item-fields-mapping.png)
+![Sales Order Item Fields Mapping](images/sales-order-item-fields-mapping.png)
 
 To figure out the correct JSONPath expression, you can:
 1. Go to any **WooCommerce Order** and look at the 'Line Items' data
@@ -82,6 +82,12 @@ Each **Customer** record has a `woocommerce_identifier` custom field. This ident
 | Company (`billing.company` on **WooCommerce Order** is set), **Only if *Enable Dual Accounts for Same Email (Private/Company)* is checked** | `{billing.email}-{company}` |
 | Individual (`billing.company` on **WooCommerce Order** is not set)                                                                          | `billing.email`             |
 
+## Contact Synchronisation
+
+**Contact** records are also created for **Customer**s. In order to prevent duplicate **Contact**s, synchronisation checks for an existing **Contact**, first by the provided email address, then by provided phone number.
+
+Currently, **Contact** records are not updated when details change. Changes must be handled manually.
+
 ## Address Synchronisation
 - If the billing and shipping address on the **WooCommerce Order** is the same, a single **Address** will be created with both the *Preferred Billing Address* and *Preferred Shipping Address* checkboxes ticked.
 - If an address with *Preferred Billing Address*/*Preferred Shipping Address* ticked aleady exists, this address will be updated
@@ -91,7 +97,7 @@ Each **Customer** record has a `woocommerce_identifier` custom field. This ident
 - For this to work, you have to map WooCommerce Shipping Methods to ERPNext Shipping Rules 
   - You can find the *WooCommerce Shipping Method Title* fields by looking at the `method_title` values in **WooCommerce Order** > *Shipping Lines*
 
-![Sales Order Sync Shipping Rule Map](../images/so-shipping-rule-2.png)
+![Sales Order Sync Shipping Rule Map](images/so-shipping-rule-2.png)
 
 
 ## Automatic Order Status Synchronisation
@@ -101,7 +107,7 @@ Each **Customer** record has a `woocommerce_identifier` custom field. This ident
 - For this to work, you have to map **ERPNext Sales Order Statuses** to **WooCommerce Sales Order Statuses**
 - For example, if you map `On Hold` (ERPNext Sales Order Status) to `on-hold` (WooCommerce Sales Order Status), if you change a Sales Order's status to `On Hold`, it'll automatically attempt to set the WooCommerce Order's status to `On  Hold`
 
-![Sales Order Status Sync](../images/so-order-status.png)
+![Sales Order Status Sync](images/so-order-status.png)
 
 
 ## Troubleshooting
