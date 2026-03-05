@@ -639,6 +639,12 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 		contact = None
 		if not is_new_customer:
 			contact = find_existing_contact(email, raw_billing_data.get("phone"))
+			# Verify the found contact is actually linked to this customer; if not, a new one will be created
+			if contact and not frappe.db.exists(
+				"Dynamic Link",
+				{"parent": contact.name, "link_doctype": "Customer", "link_name": customer.name},
+			):
+				contact = None
 		if not contact:
 			contact = create_contact(raw_billing_data, self.customer)
 		if contact and is_new_customer:
