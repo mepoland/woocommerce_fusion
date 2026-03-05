@@ -221,6 +221,15 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 			):
 				self.sales_order.reload()
 				if self.create_and_link_payment_entry(self.woocommerce_order, self.sales_order):
+					# PE submission triggers ERPNext to update the SO's advance/outstanding fields,
+					# bumping its modified timestamp in the DB and making our in-memory copy stale.
+					# Capture the WC fields set by create_and_link_payment_entry, reload to get
+					# the current DB timestamp, then re-apply before saving.
+					pe_name = self.sales_order.woocommerce_payment_entry
+					pe_attempted = self.sales_order.custom_attempted_woocommerce_auto_payment_entry
+					self.sales_order.reload()
+					self.sales_order.woocommerce_payment_entry = pe_name
+					self.sales_order.custom_attempted_woocommerce_auto_payment_entry = pe_attempted
 					self.sales_order.save()
 
 	def update_sales_order(self, woocommerce_order: WooCommerceOrder, sales_order: SalesOrder):
