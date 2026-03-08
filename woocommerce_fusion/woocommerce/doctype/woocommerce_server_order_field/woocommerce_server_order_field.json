@@ -1,0 +1,49 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-03-08 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "erpnext_field_name",
+  "column_break_kddy",
+  "woocommerce_field_name"
+ ],
+ "fields": [
+  {
+   "fieldname": "erpnext_field_name",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "ERPNext Field Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_kddy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "e.g. <code>$.meta_data[?(@.key=='_po_number')].value</code> or <code>$.customer_note</code> where <code>$</code> refers to the full WooCommerce Order",
+   "documentation_url": "https://woocommerce-fusion-docs.starktail.com/woocommerce_fusion_sales-order#fields-mapping",
+   "fieldname": "woocommerce_field_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "JSONPath on WooCommerce Order",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-03-08 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "WooCommerce",
+ "name": "WooCommerce Server Order Field",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

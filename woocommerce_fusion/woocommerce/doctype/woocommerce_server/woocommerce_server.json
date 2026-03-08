@@ -61,6 +61,9 @@
   "enable_so_status_sync",
   "enable_so_status_sync_warning_html",
   "sales_order_status_map",
+  "order_fields_section",
+  "order_fields_warning_html",
+  "order_field_map",
   "order_item_line_fields_section",
   "order_item_fields_warning_html",
   "order_line_item_field_map",
@@ -558,6 +561,23 @@
    "fieldname": "enable_woocommerce_request_logs",
    "fieldtype": "Check",
    "label": "Enable WooCommerce Request Logs"
+  },
+  {
+   "fieldname": "order_fields_section",
+   "fieldtype": "Section Break",
+   "label": "Order Header Fields"
+  },
+  {
+   "fieldname": "order_fields_warning_html",
+   "fieldtype": "HTML",
+   "options": "<div class=\"alert alert-warning\">\nMapping order header fields is recommended for advanced users only. Make sure to monitor Error Logs after adding field mappings.\n</div>"
+  },
+  {
+   "documentation_url": "https://woocommerce-fusion-docs.starktail.com/woocommerce_fusion_sales-order#fields-mapping",
+   "fieldname": "order_field_map",
+   "fieldtype": "Table",
+   "label": "Order Header Fields Mapping",
+   "options": "WooCommerce Server Order Field"
   },
   {
    "fieldname": "order_item_line_fields_section",

@@ -264,6 +264,9 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 				if self.create_and_link_payment_entry(woocommerce_order, sales_order):
 					so_dirty = True
 
+			if self.set_sales_order_fields(woocommerce_order, sales_order):
+				so_dirty = True
+
 			if so_dirty:
 				sales_order.flags.created_by_sync = True
 				sales_order.save()
@@ -502,7 +505,7 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 		new_sales_order.customer_address = billing_address_name
 		new_sales_order.shipping_address_name = shipping_address_name
 		new_sales_order.contact_person = contact_name
-		new_sales_order.po_no = new_sales_order.woocommerce_id = wc_order.id
+		new_sales_order.woocommerce_id = wc_order.id
 		new_sales_order.custom_woocommerce_customer_note = wc_order.customer_note
 
 		new_sales_order.woocommerce_status = WC_ORDER_STATUS_MAPPING_REVERSE[wc_order.status]
@@ -541,6 +544,7 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 
 		self.set_items_in_sales_order(new_sales_order, wc_order)
 		self.set_fee_lines_in_sales_order(new_sales_order, wc_order)
+		self.set_sales_order_fields(wc_order, new_sales_order)
 		new_sales_order.flags.ignore_mandatory = True
 		new_sales_order.flags.created_by_sync = True
 		new_sales_order.insert()
@@ -906,6 +910,51 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 							)
 							so_item_dirty = True
 			return so_item_dirty, so_item
+
+	def set_sales_order_fields(
+		self, wc_order: WooCommerceOrder, sales_order: SalesOrder | dict
+	) -> bool:
+		"""
+		If there exist any Order Header Field Mappings on `WooCommerce Server`, attempt to set
+		their values from the WooCommerce Order to the ERPNext Sales Order header.
+
+		The JSONPath expression is evaluated against the full WooCommerce Order as a dict.
+		JSON-serialised fields (meta_data, billing, etc.) are deserialised so JSONPath
+		filters like ?(@.key=='_po_number') work correctly.
+
+		Returns True if any field was set (used for dirty-tracking in the update path).
+		"""
+		so_dirty = False
+		wc_server = frappe.get_cached_doc("WooCommerce Server", wc_order.woocommerce_server)
+		if not wc_server.order_field_map:
+			return so_dirty
+
+		# Build a plain dict from the WooCommerce order and deserialise any JSON string fields
+		# so that JSONPath filter expressions can traverse nested structures.
+		wc_order_dict = wc_order.as_dict()
+		for key, value in wc_order_dict.items():
+			if isinstance(value, str):
+				try:
+					wc_order_dict[key] = json.loads(value)
+				except (json.JSONDecodeError, TypeError):
+					pass
+
+		for map_row in wc_server.order_field_map:
+			erpnext_field_name = map_row.erpnext_field_name.split(" | ")[0]
+
+			# We expect woocommerce_field_name to be valid JSONPath
+			jsonpath_expr = parse(map_row.woocommerce_field_name)
+			matches = jsonpath_expr.find(wc_order_dict)
+
+			if len(matches) > 0:
+				new_value = matches[0].value
+				if type(sales_order) is dict:
+					sales_order[erpnext_field_name] = new_value
+				else:
+					setattr(sales_order, erpnext_field_name, new_value)
+					so_dirty = True
+
+		return so_dirty
 
 	def create_order_addresses(
 		self, raw_billing_data: Dict, raw_shipping_data: Dict, customer, is_new_customer: bool
