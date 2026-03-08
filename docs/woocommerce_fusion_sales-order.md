@@ -40,12 +40,35 @@ Note that if sync for an **Item** is disabled (i.e. the "Enabled" checkbox on th
 | ------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | billing       | **Address** with type *Billing*               | See **Customer Synchronisation** below. Checks if the `billing.email` field matches an existing **Customer's** `woocommerce_identifier` field. If not, a new **Customer** is created. |
 |               | **Contact**                                   |                                                                                                                                                                                       |
-| shipping      | **Address** with type *Shipping*               | See **Address  Synchronsation** below                                                                                                                                                 |
+| shipping      | **Address** with type *Shipping*              | See **Address Synchronisation** below                                                                                                                                                 |
 | line_items    | **Item**                                      | Checks if a linked **Item** exists, else a new Item is created                                                                                                                        |
-| id            | **Sales Order** > *Customer's Purchase Order* |                                                                                                                                                                                       |
-|               | **Sales Order** > *Woocommerce ID*            |                                                                                                                                                                                       |
+| id            | **Sales Order** > *Woocommerce ID*            |                                                                                                                                                                                       |
 | currency      | **Sales Order** > *Currency*                  |                                                                                                                                                                                       |
 | customer_note | **Sales Order** > *WooCommerce Customer Note* |                                                                                                                                                                                       |
+| *(configurable)* | **Sales Order** > *(any field)*            | See **Custom Fields Mapping for Sales Order Header** below                                                                                                                            |
+
+
+## Custom Fields Mapping for Sales Order Header
+
+You can use [JSONPath](https://pypi.org/project/jsonpath-ng/) to map any **Sales Order** header field to a field on the **WooCommerce Order**.
+
+This is configured under **WooCommerce Server** > *Sales Orders* > *Order Header Fields Mapping*.
+
+By default, a mapping is created that sets **Sales Order** > *Customer's Purchase Order* (`po_no`) from the WooCommerce Order `id` field (`$.id`), preserving the behaviour of earlier versions. You can modify or replace this row to suit your needs — for example, to pull a customer PO number from a WooCommerce order meta_data field.
+
+Here are a few JSONPath examples:
+- `$.id` retrieves the WooCommerce Order's internal integer ID
+- `$.number` retrieves the store-facing order number
+- `$.meta_data[?(@.key=='_po_number')].value` retrieves the value of a meta_data entry with a `key` of `_po_number`
+
+where `$` refers to the full **WooCommerce Order** object
+
+To figure out the correct JSONPath expression, you can:
+1. Go to any **WooCommerce Order** and inspect the field values
+2. Open [JSONPath Online Validator](https://jsonpath.com/) and paste the **WooCommerce Order** data into the *Document* text box
+3. Play around to get the JSONPath query to return what you need. LLMs can be a big help here.
+
+**Note that this is recommended for advanced users only. There are no field type conversions possible as of yet.**
 
 
 ## Custom Fields Mapping for Sales Order Items
@@ -66,10 +89,7 @@ To figure out the correct JSONPath expression, you can:
 2. Open [JSONPath Online Validator](https://jsonpath.com/) and copy the relevant 'Line Items' data from the **WooCommerce Order** to the *Document* text box.
 3. Play around to get the JSONPath Query to return what you need. LLM's can be a big help here.
 
-
-
-
-**Note that this is recommended for advanced users only. This is a very basic functionality - there are no field type conversions possible as of yet.
+**Note that this is recommended for advanced users only. There are no field type conversions possible as of yet.**
 
 
 ## Customer Synchronisation
