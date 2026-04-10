@@ -49,6 +49,9 @@
   "ignore_date_paid",
   "payment_method_bank_account_mapping",
   "payment_method_gl_account_mapping",
+  "enable_payment_fee_sync",
+  "payment_fee_metadata_key",
+  "payment_fee_account",
   "customers_sync_section",
   "enable_dual_accounts",
   "match_customer_by_company_name",
@@ -298,6 +301,29 @@
    "fieldname": "payment_method_gl_account_mapping",
    "fieldtype": "JSON",
    "label": "Map GL Accounts to Payment Methods"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.enable_payments_sync === 1",
+   "fieldname": "enable_payment_fee_sync",
+   "fieldtype": "Check",
+   "label": "Add Transaction Fees to Payment Entries"
+  },
+  {
+   "default": "_wcpay_transaction_fee",
+   "depends_on": "eval: doc.enable_payments_sync === 1 && doc.enable_payment_fee_sync === 1",
+   "description": "The key in the WooCommerce order meta_data array whose value contains the transaction fee amount",
+   "fieldname": "payment_fee_metadata_key",
+   "fieldtype": "Data",
+   "label": "Transaction Fee Metadata Key"
+  },
+  {
+   "depends_on": "eval: doc.enable_payments_sync === 1 && doc.enable_payment_fee_sync === 1",
+   "description": "Expense account to debit for payment processor fees (e.g. Payment Processing Fees)",
+   "fieldname": "payment_fee_account",
+   "fieldtype": "Link",
+   "label": "Transaction Fee Expense Account",
+   "options": "Account"
   },
   {
    "fieldname": "section_break_hnji",

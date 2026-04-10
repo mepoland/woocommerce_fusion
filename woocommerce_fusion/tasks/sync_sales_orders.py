@@ -360,6 +360,31 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 				row.reference_name = reference_name
 				row.total_amount = total_amount
 				row.allocated_amount = total_amount
+
+				# Add transaction fee deduction if configured
+				if wc_server.enable_payment_fee_sync and wc_server.payment_fee_account and wc_server.payment_fee_metadata_key:
+					try:
+						fee_str = (
+							next(
+								(data["value"] for data in meta_data if data["key"] == wc_server.payment_fee_metadata_key),
+								None,
+							)
+							if meta_data and isinstance(meta_data, list)
+							else None
+						)
+						if fee_str:
+							fee_amount = float(fee_str)
+							if fee_amount:
+								payment_entry.received_amount = float(wc_order.total) - fee_amount
+								deduction_row = payment_entry.append("deductions")
+								deduction_row.account = wc_server.payment_fee_account
+								deduction_row.amount = fee_amount
+					except Exception:
+						frappe.log_error(
+							"WooCommerce Payment Fee Sync Error",
+							f"Failed to add transaction fee deduction to Payment Entry for WooCommerce order {wc_order.name}.\n\n{frappe.get_traceback()}",
+						)
+
 				payment_entry.save()
 				if wc_server.submit_payment_entries:
 					payment_entry.submit()
